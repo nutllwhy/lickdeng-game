@@ -3,203 +3,394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 栗噔噔 - 点击游戏</title>
+    <title>🤖 AI知识挑战赛</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: #fff;
-            overflow: hidden;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
         }
         h1 {
             font-size: 2.5rem;
-            margin-bottom: 20px;
-            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb);
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .score-board {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            padding: 10px 30px;
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .game-card {
             background: rgba(255,255,255,0.1);
-            border-radius: 25px;
-            backdrop-filter: blur(10px);
-        }
-        .game-area {
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.05);
             border-radius: 20px;
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .target {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            border-radius: 50%;
-            position: absolute;
-            cursor: pointer;
-            animation: pulse 0.5s ease-in-out infinite alternate;
-            box-shadow: 0 0 20px rgba(255,107,107,0.5);
+        .stats {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
         }
-        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
-        .target::after { content: '🤖'; }
-        .click-effect {
-            position: absolute;
-            pointer-events: none;
-            animation: flyUp 0.8s ease-out forwards;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #feca57;
+        .stat { text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: #00d2ff; }
+        .stat-label { font-size: 0.8rem; color: #888; }
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
-        @keyframes flyUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .option:hover {
+            background: rgba(0,210,255,0.1);
+            border-color: #00d2ff;
+        }
+        .option.correct {
+            background: rgba(0,255,136,0.2);
+            border-color: #00ff88;
+        }
+        .option.wrong {
+            background: rgba(255,0,100,0.2);
+            border-color: #ff0064;
+        }
+        .option.disabled { pointer-events: none; }
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff, #00ff88);
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+        .timer {
+            text-align: center;
+            font-size: 1rem;
+            color: #ff6b6b;
+            margin-bottom: 15px;
+        }
+        .start-screen, .end-screen {
+            text-align: center;
+            padding: 20px;
         }
         .start-btn {
-            margin-top: 30px;
             padding: 15px 50px;
             font-size: 1.2rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
             border: none;
             border-radius: 30px;
             color: white;
             cursor: pointer;
             transition: transform 0.3s, box-shadow 0.3s;
+            margin: 10px;
         }
         .start-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+            box-shadow: 0 10px 30px rgba(0,210,255,0.4);
         }
-        .game-over {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
+        .difficulty-select {
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            border-radius: 20px;
+            gap: 10px;
+            margin: 20px 0;
         }
-        .hidden { display: none !important; }
-        .combo {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            font-size: 1.2rem;
+        .diff-btn {
             padding: 10px 20px;
-            background: linear-gradient(135deg, #feca57, #ff9f43);
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
             border-radius: 20px;
-            animation: comboPop 0.3s ease;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        @keyframes comboPop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+        .diff-btn.active {
+            background: rgba(0,210,255,0.2);
+            border-color: #00d2ff;
+        }
+        .result-score {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00d2ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .result-rank {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0,255,136,0.1);
+            border-radius: 10px;
+        }
+        .ai-thinking {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #00d2ff;
+        }
+        .ai-thinking.show { display: block; }
+        .thinking-dots span {
+            animation: blink 1.4s infinite both;
+            font-size: 1.5rem;
+        }
+        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <h1>🤖 栗噔噔点击游戏</h1>
-    <div class="score-board">得分: <span id="score">0</span></div>
-    <div class="game-area" id="gameArea">
-        <div class="target" id="target" style="display: none;"></div>
-        <div class="game-over hidden" id="gameOver">
-            <h2 style="font-size: 2rem; margin-bottom: 20px;">🎮 游戏结束！</h2>
-            <p style="font-size: 1.5rem; margin-bottom: 30px;">最终得分: <span id="finalScore">0</span></p>
-            <button class="start-btn" onclick="startGame()">再来一局</button>
+    <div class="container">
+        <h1>🤖 AI知识挑战赛</h1>
+        <p class="subtitle">测测你对AI了解多少！</p>
+        
+        <!-- 开始界面 -->
+        <div class="game-card" id="startScreen">
+            <div class="start-screen">
+                <p style="margin-bottom: 20px; color: #aaa;">选择难度，开始挑战！</p>
+                <div class="difficulty-select">
+                    <button class="diff-btn active" onclick="setDifficulty('easy')">简单</button>
+                    <button class="diff-btn" onclick="setDifficulty('medium')">中等</button>
+                    <button class="diff-btn" onclick="setDifficulty('hard')">困难</button>
+                </div>
+                <button class="start-btn" onclick="startGame()">开始挑战</button>
+            </div>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div class="game-card hidden" id="gameScreen">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="currentQ">1</div>
+                    <div class="stat-label">当前题号</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="score">0</div>
+                    <div class="stat-label">得分</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="streak">0</div>
+                    <div class="stat-label">连击</div>
+                </div>
+            </div>
+            <div class="timer" id="timer"></div>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="ai-thinking" id="aiThinking">
+                <div class="thinking-dots">
+                    <span>🤔</span><span>🤔</span><span>🤔</span>
+                </div>
+                <p>AI正在思考...</p>
+            </div>
+        </div>
+
+        <!-- 结束界面 -->
+        <div class="game-card hidden" id="endScreen">
+            <div class="end-screen">
+                <h2>🎉 挑战完成！</h2>
+                <div class="result-score" id="finalScore">0</div>
+                <div class="result-rank" id="rank"></div>
+                <button class="start-btn" onclick="restartGame()">再来一局</button>
+                <button class="start-btn" onclick="shareResult()">分享成绩</button>
+            </div>
         </div>
     </div>
-    <button class="start-btn" id="startBtn" onclick="startGame()">开始游戏</button>
+
     <script>
-        let score = 0, timeLeft = 30, gameRunning = false, timer, combo = 0;
-        const gameArea = document.getElementById('gameArea');
-        const target = document.getElementById('target');
-        const scoreDisplay = document.getElementById('score');
-        const finalScoreDisplay = document.getElementById('finalScore');
-        const gameOverScreen = document.getElementById('gameOver');
-        const startBtn = document.getElementById('startBtn');
+        // 题库
+        const questions = {
+            easy: [
+                { q: "GPT的全称是什么？", options: ["General Pre-trained Transformer", "Generative Pre-trained Transformer", "Global Pre-trained Tech", "General Power Transformer"], a: 1 },
+                { q: "ChatGPT是哪个公司开发的？", options: ["Google", "Microsoft", "OpenAI", "Meta"], a: 2 },
+                { q: "AI的全称是？", options: ["Artificial Intelligence", "Auto Information", "Advanced Intelligence", "Automated Internet"], a: 0 },
+                { q: "Stable Diffusion主要用于？", options: ["视频生成", "图片生成", "文本生成", "音频生成"], a: 1 },
+                { q: "Midjourney是？", options: ["编程工具", "AI绘图工具", "搜索引擎", "社交平台"], a: 1 },
+                { q: "Claude背后的公司是？", options: ["OpenAI", "Google", "Anthropic", "Microsoft"], a: 2 },
+                { q: "Python最适合做什么？", options: ["AI开发", "网页设计", "游戏开发", "财务管理"], a: 0 },
+                { q: "ChatGPT首次发布于？", options: ["2022年", "2020年", "2023年", "2021年"], a: 0 },
+                { q: "Gemini是哪个公司的？", options: ["OpenAI", "Microsoft", "Google", "Amazon"], a: 2 },
+                { q: "Llama是Meta的？", options: ["聊天机器人", "开源大模型", "搜索引擎", "图像模型"], a: 1 }
+            ],
+            medium: [
+                { q: "Transformer架构最初出现在哪篇论文中？", options: ["Attention Is All You Need", "BERT", "GPT", "AlphaGo"], a: 0 },
+                { q: "什么是Token？", options: ["图片", "模型参数", "文本基本单位", "API接口"], a: 2 },
+                { q: "RAG技术主要用于？", options: ["图像识别", "增强AI知识储备", "语音合成", "视频生成"], a: 1 },
+                { q: "OpenAI的Sora是？", options: ["聊天机器人", "视频生成模型", "编程工具", "搜索引擎"], a: 1 },
+                { q: "LangChain主要用于？", options: ["开发AI应用", "训练模型", "数据标注", "模型压缩"], a: 0 },
+                { q: "什么是Prompt？", options: ["提示词", "模型参数", "API密钥", "训练数据"], a: 0 },
+                { q: "LoRA主要用于？", options: ["模型微调", "数据清洗", "模型压缩", "模型蒸馏"], a: 0 },
+                { q: "GPU在AI中的主要作用是？", options: ["存储数据", "并行计算", "网络传输", "用户交互"], a: 1 },
+                { q: "什么是Fine-tuning？", options: ["模型蒸馏", "模型微调", "模型压缩", "模型集成"], a: 1 },
+                { q: "AI Agent的核心能力是？", options: ["仅回答问题", "自主规划和执行任务", "仅生成图片", "仅处理文字"], a: 1 }
+            ],
+            hard: [
+                { q: "Self-Attention的计算复杂度是？", options: ["O(n)", "O(n²)", "O(log n)", "O(1)"], a: 1 },
+                { q: "什么是Chain-of-Thought？", options: ["思维链", "注意力机制", "模型蒸馏", "数据增强"], a: 0 },
+                { q: "RLHF主要用于？", options: ["模型预训练", "强化学习人类反馈", "模型压缩", "对抗训练"], a: 1 },
+                { q: "Flash Attention主要用于？", options: ["减少显存占用", "提高精度", "加速训练", "模型剪枝"], a: 0 },
+                { q: "什么是In-Context Learning？", options: ["在线学习", "上下文学习", "迁移学习", "持续学习"], a: 1 },
+                { q: "MoE架构主要用于？", options: ["减少计算量", "图像识别", "语音合成", "推荐系统"], a: 0 },
+                { q: "什么是Zero-shot Learning？", options: ["零样本学习", "小样本学习", "持续学习", "迁移学习"], a: 0 },
+                { q: "Position Encoding的作用是？", options: ["添加位置信息", "注意力计算", "特征提取", "输出预测"], a: 0 },
+                { q: "Mamba架构的核心创新是？", options: ["Transformer", "SSM状态空间模型", "RNN循环网络", "CNN卷积网络"], a: 1 },
+                { q: "什么是Speculative Decoding？", options: ["投机解码", "思维链", "模型蒸馏", "数据增强"], a: 0 }
+            ]
+        };
 
-        function getRandomPosition() {
-            const maxX = gameArea.clientWidth - 50;
-            const maxY = gameArea.clientHeight - 50;
-            return { x: Math.floor(Math.random() * maxX), y: Math.floor(Math.random() * maxY) };
+        let currentDifficulty = 'easy';
+        let currentQuestion = 0;
+        let score = 0;
+        let streak = 0;
+        let gameQuestions = [];
+        let timeLeft = 15;
+        let timerInterval;
+
+        function setDifficulty(diff) {
+            currentDifficulty = diff;
+            document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
         }
 
-        function moveTarget() {
-            const pos = getRandomPosition();
-            target.style.left = pos.x + 'px';
-            target.style.top = pos.y + 'px';
-        }
-
-        function createClickEffect(x, y) {
-            const effect = document.createElement('div');
-            effect.className = 'click-effect';
-            effect.textContent = '+' + (1 + Math.floor(combo / 5));
-            effect.style.left = x + 'px';
-            effect.style.top = y + 'px';
-            gameArea.appendChild(effect);
-            setTimeout(() => effect.remove(), 800);
-        }
-
-        function showCombo() {
-            if (combo > 0 && combo % 5 === 0) {
-                const comboEl = document.createElement('div');
-                comboEl.className = 'combo';
-                comboEl.textContent = '🔥 ' + combo + ' 连击！';
-                document.body.appendChild(comboEl);
-                setTimeout(() => comboEl.remove(), 1500);
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
+            return array;
         }
-
-        target.addEventListener('click', (e) => {
-            if (!gameRunning) return;
-            score += 1 + Math.floor(combo / 5);
-            combo++;
-            scoreDisplay.textContent = score;
-            moveTarget();
-            createClickEffect(e.offsetX, e.offsetY);
-            showCombo();
-            if (score % 10 === 0) {
-                clearInterval(timer);
-                timer = setInterval(moveTarget, Math.max(500, 1000 - score * 10));
-            }
-        });
-
-        gameArea.addEventListener('click', (e) => { if (e.target === gameArea && gameRunning) combo = 0; });
 
         function startGame() {
-            score = 0; combo = 0; timeLeft = 30; gameRunning = true;
-            scoreDisplay.textContent = '0';
-            gameOverScreen.classList.add('hidden');
-            startBtn.style.display = 'none';
-            target.style.display = 'flex';
-            moveTarget();
-            timer = setInterval(moveTarget, 1000);
-            const countdown = setInterval(() => { timeLeft--; if (timeLeft <= 0) { clearInterval(countdown); endGame(); } }, 1000);
+            currentQuestion = 0;
+            score = 0;
+            streak = 0;
+            gameQuestions = shuffleArray([...questions[currentDifficulty]]).slice(0, 10);
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('endScreen').classList.add('hidden');
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestion >= gameQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const q = gameQuestions[currentQuestion];
+            document.getElementById('currentQ').textContent = currentQuestion + 1;
+            document.getElementById('score').textContent = score;
+            document.getElementById('streak').textContent = streak;
+            document.getElementById('progress').style.width = ((currentQuestion) / gameQuestions.length * 100) + '%';
+            
+            document.getElementById('question').textContent = q.q;
+            document.getElementById('options').innerHTML = '';
+            
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'option';
+                btn.textContent = opt;
+                btn.onclick = () => selectAnswer(i, btn);
+                document.getElementById('options').appendChild(btn);
+            });
+
+            timeLeft = 15;
+            document.getElementById('timer').textContent = `⏰ ${timeLeft}秒`;
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `⏰ ${timeLeft}秒`;
+                if (timeLeft <= 0) {
+                    selectAnswer(-1, null);
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(index, btn) {
+            clearInterval(timerInterval);
+            const q = gameQuestions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach(opt => opt.classList.add('disabled'));
+            
+            if (index === q.a) {
+                btn.classList.add('correct');
+                streak++;
+                score += (10 + streak * 2);
+            } else {
+                if (index >= 0) btn.classList.add('wrong');
+                options[q.a].classList.add('correct');
+                streak = 0;
+            }
+
+            setTimeout(() => {
+                currentQuestion++;
+                showQuestion();
+            }, 1000);
         }
 
         function endGame() {
-            gameRunning = false; clearInterval(timer);
-            target.style.display = 'none';
-            finalScoreDisplay.textContent = score;
-            gameOverScreen.classList.remove('hidden');
-            startBtn.style.display = 'block';
-            startBtn.textContent = '再来一局';
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = score;
+            
+            let rank = "AI小白";
+            if (score >= 150) rank = "🤖 AI大师";
+            else if (score >= 100) rank = "💻 AI达人";
+            else if (score >= 50) rank = "📚 AI学者";
+            
+            document.getElementById('rank').textContent = `你的段位: ${rank}`;
+        }
+
+        function restartGame() {
+            document.getElementById('endScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        function shareResult() {
+            const text = `🤖 AI知识挑战赛\n得分: ${score}\n段位: ${document.getElementById('rank').textContent}\n#AI知识挑战赛`;
+            if (navigator.share) {
+                navigator.share({ title: 'AI知识挑战赛', text: text });
+            } else {
+                navigator.clipboard.writeText(text);
+                alert('已复制到剪贴板！');
+            }
         }
     </script>
 </body>
